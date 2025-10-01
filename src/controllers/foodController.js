@@ -1,61 +1,81 @@
+// src/controllers/foodController.js
 const Food = require('../models/Food');
 
-exports.getAllFoods = async (req, res) => {
-    try {
-        const foodItems = await Food.find();
-        res.status(200).json(foodItems);
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در دریافت غذاها.', error });
-    }
+// @desc    Add a new food
+// @route   POST /api/foods
+// @access  Private/Admin
+const addFood = async (req, res) => {
+  const { name, price, description, category } = req.body;
+
+  try {
+    const food = new Food({
+      name,
+      price,
+      description,
+      category,
+    });
+
+    const createdFood = await food.save();
+    res.status(201).json(createdFood);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
-exports.addFood = async (req, res) => {
-    try {
-        const { name, description, price } = req.body;
-        const newFoodItem = new Food({ name, description, price });
-        await newFoodItem.save();
-        res.status(201).json({ message: 'غذای جدید با موفقیت اضافه شد.', foodItem: newFoodItem });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در اضافه کردن غذا.', error });
+// @desc    Update a food
+// @route   PUT /api/foods/:id
+// @access  Private/Admin
+const updateFood = async (req, res) => {
+  const { name, price, description, category, isAvailable } = req.body;
+
+  try {
+    const food = await Food.findById(req.params.id);
+
+    if (food) {
+      food.name = name || food.name;
+      food.price = price || food.price;
+      food.description = description || food.description;
+      food.category = category || food.category;
+      food.isAvailable = isAvailable !== undefined ? isAvailable : food.isAvailable;
+
+      const updatedFood = await food.save();
+      res.json(updatedFood);
+    } else {
+      res.status(404).json({ message: 'Food not found' });
     }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
-exports.updateFood = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, description, price } = req.body;
-        const updatedFoodItem = await Food.findByIdAndUpdate(id, { name, description, price }, { new: true });
-        if (!updatedFoodItem) {
-            return res.status(404).json({ message: 'غذا پیدا نشد.' });
-        }
-        res.status(200).json({ message: 'غذا با موفقیت به‌روزرسانی شد.', foodItem: updatedFoodItem });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در به‌روزرسانی غذا.', error });
+// @desc    Delete a food
+// @route   DELETE /api/foods/:id
+// @access  Private/Admin
+const deleteFood = async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
+
+    if (food) {
+      await food.deleteOne(); // یا Food.findByIdAndDelete(req.params.id)
+      res.json({ message: 'Food removed' });
+    } else {
+      res.status(404).json({ message: 'Food not found' });
     }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
-exports.deleteFood = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deletedFoodItem = await Food.findByIdAndDelete(id);
-        if (!deletedFoodItem) {
-            return res.status(404).json({ message: 'غذا پیدا نشد.' });
-        }
-        res.status(200).json({ message: 'غذا با موفقیت حذف شد.' });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در حذف غذا.', error });
-    }
+// @desc    Get all foods
+// @route   GET /api/foods
+// @access  Private (همه کاربران لاگین کرده می‌توانند ببینند)
+const getAllFoods = async (req, res) => {
+  try {
+    const foods = await Food.find({});
+    res.json(foods);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
-exports.getFoodById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const foodItem = await Food.findById(id);
-        if (!foodItem) {
-            return res.status(404).json({ message: 'غذا پیدا نشد.' });
-        }
-        res.status(200).json(foodItem);
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در دریافت غذا.', error });
-    }
-};
+module.exports = { addFood, updateFood, deleteFood, getAllFoods };

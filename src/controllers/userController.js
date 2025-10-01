@@ -1,55 +1,78 @@
+// controllers/UserController.js
 const User = require('../models/User');
+const Company = require('../models/Company'); // فرض می‌کنیم این مدل وجود دارد
+const generateToken = require('../utils/generateToken');
 
-exports.registerUser = async (req, res) => {
-    const { mobileNumber, nationalId } = req.body;
+// @desc    Register a new user
+// @access  Public
+const registerUser = async (req, res) => {
+  const { fullName, nationalId, phoneNumber, password, role, companyId } = req.body;
 
-    try {
-        const newUser = new User({ mobileNumber, nationalId });
-        await newUser.save();
-        res.status(201).json({ message: 'کاربر با موفقیت ثبت شد', user: newUser });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در ثبت کاربر', error });
+  try {
+    const userExists = await User.findOne({ $or: [{ nationalId }, { phoneNumber }] });
+
+    if (userExists) {
+      return res.status(400).json({ message: 'کاربر با این کد ملی یا شماره موبایل قبلا ثبت نام کرده است' });
     }
+
+    // اگر نقش کارمند یا شرکت بود، باید شناسه شرکت معتبر باشد
+    if ((role === 'employee' || role === 'company') && companyId) {
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(400).json({ message: 'شرکت مشخص شده یافت نشد' });
+        }
+    } else if (role !== 'admin') {
+        return res.status(400).json({ message: 'برای این نقش، شناسه شرکت الزامی است' });
+    }
+
+    const user = await User.create({
+      fullName,
+      nationalId,
+      phoneNumber,
+      password,
+      role,
+      company: companyId, // برای ادمین این مقدار null خواهد بود
+    });
+
+    if (user) {
+      res.status(201).json({
+        _id: user._id,
+        fullName: user.fullName,
+        nationalId: user.nationalId,
+        role: user.role,
+        token: generateToken(user._id, user.role),
+      });
+    } else {
+      res.status(400).json({ message: 'اطلاعات کاربر نامعتبر است' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'خطای سرور', error: error.message });
+  }
 };
 
-exports.placeOrder = async (req, res) => {
-    const { userId, foodItems } = req.body;
-    if (!userId) {
-        return res.status(401).json({ message: 'ابتدا وارد شوید.' });
+// @desc    Auth user & get token (Login)
+// @route   POST /api/users/login
+// @access  Public
+const loginUser = async (req, res) => {
+  const { nationalId, password } = req.body;
+
+  try {
+    const user = await User.findOne({ nationalId });
+
+    if (user && (await user.matchPassword(password))) {
+      res.json({
+        _id: user._id,
+        fullName: user.fullName,
+        nationalId: user.nationalId,
+        role: user.role,
+        token: generateToken(user._id, user.role),
+      });
+    } else {
+      res.status(401).json({ message: 'کد ملی یا رمز عبور اشتباه است' });
     }
-    if (!foodItems || !Array.isArray(foodItems) || foodItems.length === 0) {
-        return res.status(400).json({ message: 'لیست غذاها خالی است.' });
-    }
-    // ادامه ثبت سفارش...
-    res.status(200).json({ message: 'سفارش با موفقیت ثبت شد' });
+  } catch (error) {
+    res.status(500).json({ message: 'خطای سرور', error: error.message });
+  }
 };
 
-exports.getUserProfile = async (req, res) => {
-    try {
-        // نمونه: دریافت اطلاعات کاربر از دیتابیس
-        // const user = await User.findById(req.params.id);
-        res.status(200).json({ user: {} });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در دریافت اطلاعات کاربر', error });
-    }
-};
-
-exports.updateUserProfile = async (req, res) => {
-    try {
-        // نمونه: به‌روزرسانی اطلاعات کاربر در دیتابیس
-        // await User.findByIdAndUpdate(req.params.id, req.body);
-        res.status(200).json({ message: 'اطلاعات کاربر به‌روزرسانی شد' });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در به‌روزرسانی اطلاعات کاربر', error });
-    }
-};
-
-exports.deleteUser = async (req, res) => {
-    try {
-        // نمونه: حذف کاربر از دیتابیس
-        // await User.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: 'کاربر حذف شد' });
-    } catch (error) {
-        res.status(500).json({ message: 'خطا در حذف کاربر', error });
-    }
-};
+module.exports = { registerUser, loginUser };

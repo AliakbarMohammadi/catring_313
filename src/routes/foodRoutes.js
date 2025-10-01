@@ -1,20 +1,16 @@
+// src/routes/foodRoutes.js
 const express = require('express');
 const router = express.Router();
-const foodController = require('../controllers/foodController');
+const { addFood, updateFood, deleteFood, getAllFoods } = require('../controllers/foodController');
+const { protect, admin } = require('../middleware/auth');
 
-// دریافت لیست غذاها
-router.get('/', foodController.getAllFoods);
+// مسیرها
+router.route('/')
+  .post(protect, admin, addFood) // فقط ادمین لاگین کرده می‌تواند غذا اضافه کند
+  .get(protect, getAllFoods);    // هر کاربر لاگین کرده می‌تواند لیست غذاها را ببیند
 
-// افزودن غذا
-router.post('/', foodController.addFood);
-
-// به‌روزرسانی غذا
-router.put('/:id', foodController.updateFood);
-
-// حذف غذا
-router.delete('/:id', foodController.deleteFood);
-
-// دریافت جزئیات غذا
-router.get('/:id', foodController.getFoodById);
+router.route('/:id')
+  .put(protect, admin, updateFood)     // فقط ادمین برای ویرایش
+  .delete(protect, admin, deleteFood); // فقط ادمین برای حذف
 
 module.exports = router;

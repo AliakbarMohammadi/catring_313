@@ -10,7 +10,7 @@ const reportRoutes = require('./routes/reportRoutes');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Static files
 const path = require('path');
@@ -28,7 +28,7 @@ mongoose.connect(process.env.DB_CONNECTION, { useNewUrlParser: true, useUnifiedT
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/food', foodRoutes);
+app.use('/api/foods', foodRoutes); // این خط را اضافه کنید
 app.use('/api/orders', orderRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/reports', reportRoutes);
