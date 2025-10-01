@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>کترینگ | ورود و ثبت سفارش</title>
+    <style>
+        body { font-family: Tahoma, Arial; background: #f9f9f9; }
+        .container { max-width: 400px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px #ccc; }
+        h2 { text-align: center; }
+        input, button { width: 100%; margin: 8px 0; padding: 8px; }
+        button { background: #2e8b57; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        .result { margin-top: 16px; color: #2e8b57; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>ثبت نام کاربر</h2>
+        <input type="text" id="mobileNumber" placeholder="شماره موبایل">
+        <input type="text" id="nationalId" placeholder="کد ملی">
+        <button onclick="registerUser()">ثبت نام</button>
+        <div id="registerResult" class="result"></div>
+        <hr>
+        <h2>ثبت سفارش</h2>
+        <input type="text" id="userId" placeholder="شناسه کاربر">
+        <input type="text" id="foodItems" placeholder="آیتم‌های غذا (مثال: [{foodId:'...',quantity:1}])">
+        <button onclick="placeOrder()">ثبت سفارش</button>
+        <div id="orderResult" class="result"></div>
+    </div>
+    <script>
+        async function registerUser() {
+            const mobileNumber = document.getElementById('mobileNumber').value;
+            const nationalId = document.getElementById('nationalId').value;
+            const res = await fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobileNumber, nationalId })
+            });
+            const data = await res.json();
+            document.getElementById('registerResult').innerText = data.message || data.error;
+        }
+        async function placeOrder() {
+            const userId = document.getElementById('userId').value;
+            const foodItems = eval(document.getElementById('foodItems').value); // توجه: فقط برای تست!
+            const res = await fetch('/api/users/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, foodItems })
+            });
+            const data = await res.json();
+            document.getElementById('orderResult').innerText = data.message || data.error;
+        }
+    </script>
+</body>
+</html>

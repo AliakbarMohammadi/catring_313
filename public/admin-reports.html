@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>گزارشات ادمین</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>گزارشات سفارش‌ها</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>عنوان گزارش</th>
+                <th>تاریخ</th>
+            </tr>
+        </thead>
+        <tbody id="reportsTable"></tbody>
+    </table>
+    <script>
+        async function loadReports() {
+            const res = await fetch('/api/reports/orders');
+            const data = await res.json();
+            const tbody = document.getElementById('reportsTable');
+            tbody.innerHTML = '';
+            (data.reports || []).forEach(report => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${report.title || 'گزارش'}</td>
+                    <td>${report.createdAt ? new Date(report.createdAt).toLocaleDateString('fa-IR') : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        loadReports();
+    </script>
+</body>
+</html>

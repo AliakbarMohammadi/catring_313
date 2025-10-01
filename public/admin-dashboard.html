@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>داشبورد ادمین</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <img src="logo.png" alt="لوگو" class="logo">
+    <h2>داشبورد ادمین</h2>
+    <nav>
+        <a href="admin-foods.html">مدیریت غذاها</a> |
+        <a href="admin-users.html">مدیریت کاربران</a> |
+        <a href="admin-reports.html">گزارشات</a>
+    </nav>
+    <div class="stats">
+        <div class="stat">
+            <img src="icons/food.png" class="icon" alt="غذا">
+            <div>تعداد غذاها</div>
+            <div id="foodCount">--</div>
+        </div>
+        <div class="stat">
+            <img src="icons/user.png" class="icon" alt="کاربر">
+            <div>تعداد کاربران</div>
+            <div id="userCount">--</div>
+        </div>
+        <div class="stat">
+            <img src="icons/order.png" class="icon" alt="سفارش">
+            <div>تعداد سفارش‌ها</div>
+            <div id="orderCount">--</div>
+        </div>
+    </div>
+    <h3>جدول سفارش‌ها</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>شناسه سفارش</th>
+                <th>کاربر</th>
+                <th>غذا</th>
+                <th>تعداد</th>
+                <th>تاریخ</th>
+            </tr>
+        </thead>
+        <tbody id="ordersTable"></tbody>
+    </table>
+    <script>
+        async function loadStats() {
+            const foodRes = await fetch('/api/food');
+            const foods = await foodRes.json();
+            document.getElementById('foodCount').innerText = foods.length || 0;
+
+            const userRes = await fetch('/api/admin/users');
+            const users = await userRes.json();
+            document.getElementById('userCount').innerText = (users.users || []).length || 0;
+
+            const orderRes = await fetch('/api/orders');
+            const orders = await orderRes.json();
+            document.getElementById('orderCount').innerText = (orders.orders || []).length || 0;
+
+            const tbody = document.getElementById('ordersTable');
+            tbody.innerHTML = '';
+            (orders.orders || []).forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.id || '-'}</td>
+                    <td>${order.userId || '-'}</td>
+                    <td>${order.foodItems && order.foodItems[0] ? order.foodItems[0].foodId : '-'}</td>
+                    <td>${order.foodItems && order.foodItems[0] ? order.foodItems[0].quantity : '-'}</td>
+                    <td>${order.createdAt ? new Date(order.createdAt).toLocaleDateString('fa-IR') : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        loadStats();
+    </script>
+</body>
+</html>

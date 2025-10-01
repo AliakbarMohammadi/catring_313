@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>ثبت نام کاربر</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>ثبت نام کاربر</h2>
+    <form id="registerForm">
+        <input type="text" name="mobileNumber" placeholder="شماره موبایل" required>
+        <input type="text" name="nationalId" placeholder="کد ملی" required>
+        <button type="submit">ثبت نام</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        document.getElementById('registerForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const res = await fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mobileNumber: form.mobileNumber.value,
+                    nationalId: form.nationalId.value
+                })
+            });
+            const data = await res.json();
+            if (data.user && data.user._id) {
+                localStorage.setItem('userId', data.user._id);
+                document.getElementById('result').innerText = 'ثبت نام موفق! در حال انتقال...';
+                setTimeout(() => window.location.href = 'order.html', 1000);
+            } else {
+                document.getElementById('result').innerText = data.message || data.error || 'ثبت نام ناموفق';
+            }
+        }
+    </script>
+</body>
+</html>

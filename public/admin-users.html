@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت کاربران</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>مدیریت کاربران</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>شماره موبایل</th>
+                <th>کد ملی</th>
+            </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+    </table>
+    <script>
+        async function loadUsers() {
+            const res = await fetch('/api/admin/users');
+            const data = await res.json();
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = '';
+            (data.users || []).forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.mobileNumber}</td>
+                    <td>${user.nationalId}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        loadUsers();
+    </script>
+</body>
+</html>

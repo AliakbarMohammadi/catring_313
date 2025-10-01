@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>ثبت سفارش</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>ثبت سفارش</h2>
+    <div id="loginStatus"></div>
+    <form id="orderForm">
+        <select id="foodSelect" required>
+            <option value="">انتخاب غذا</option>
+        </select>
+        <input type="number" id="foodQuantity" placeholder="تعداد" min="1" value="1" required>
+        <button type="button" onclick="addFoodToOrder()">افزودن به سفارش</button>
+        <ul id="orderList"></ul>
+        <button type="submit" id="placeOrderBtn">ثبت سفارش نهایی</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        // بررسی لاگین بودن کاربر
+        function isLoggedIn() {
+            return !!localStorage.getItem('userId');
+        }
+        function showLoginStatus() {
+            const div = document.getElementById('loginStatus');
+            if (isLoggedIn()) {
+                div.innerText = 'وارد شده‌اید';
+            } else {
+                div.innerHTML = 'برای ثبت سفارش باید <a href="login.html">وارد شوید</a>';
+                document.getElementById('orderForm').style.display = 'none';
+            }
+        }
+        showLoginStatus();
+
+        // دریافت لیست غذاها و نمایش در select
+        async function loadFoods() {
+            const res = await fetch('/api/food');
+            const foods = await res.json();
+            const select = document.getElementById('foodSelect');
+            foods.forEach(food => {
+                const option = document.createElement('option');
+                option.value = food._id || food.id;
+                option.innerText = `${food.name} - ${food.price} تومان`;
+                select.appendChild(option);
+            });
+        }
+        loadFoods();
+
+        let orderItems = [];
+        function addFoodToOrder() {
+            const foodId = document.getElementById('foodSelect').value;
+            const quantity = parseInt(document.getElementById('foodQuantity').value);
+            if (!foodId || !quantity) return;
+            orderItems.push({ foodId, quantity });
+            updateOrderList();
+        }
+        function updateOrderList() {
+            const ul = document.getElementById('orderList');
+            ul.innerHTML = '';
+            orderItems.forEach(item => {
+                const li = document.createElement('li');
+                li.innerText = `غذا: ${item.foodId} | تعداد: ${item.quantity}`;
+                ul.appendChild(li);
+            });
+        }
+
+        document.getElementById('orderForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if (!isLoggedIn()) {
+                alert('برای ثبت سفارش باید وارد شوید!');
+                window.location.href = 'login.html';
+                return;
+            }
+            if (orderItems.length === 0) {
+                document.getElementById('result').innerText = 'حداقل یک غذا انتخاب کنید!';
+                return;
+            }
+            const userId = localStorage.getItem('userId');
+            const res = await fetch('/api/users/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, foodItems: orderItems })
+            });
+            const data = await res.json();
+            document.getElementById('result').innerText = data.message || data.error;
+            orderItems = [];
+            updateOrderList();
+        };
+    </script>
+</body>
+</html>
