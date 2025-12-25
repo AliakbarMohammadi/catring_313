@@ -1,27 +1,65 @@
 {
-  "name": "catering-service-app",
+  "name": "tadbir-khowan",
   "version": "1.0.0",
-  "description": "A web application for managing catering services.",
-  "main": "src/server.js",
+  "description": "سامانه جامع مدیریت کترینگ آنلاین",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "concurrently \"npm run dev:services\" \"npm run dev:frontend\"",
+    "dev:services": "concurrently \"npm run dev:auth\" \"npm run dev:user\" \"npm run dev:menu\" \"npm run dev:order\" \"npm run dev:payment\" \"npm run dev:notification\" \"npm run dev:reporting\" \"npm run dev:gateway\"",
+    "dev:auth": "cd services/auth && npm run dev",
+    "dev:user": "cd services/user-management && npm run dev",
+    "dev:menu": "cd services/menu-management && npm run dev",
+    "dev:order": "cd services/order-management && npm run dev",
+    "dev:payment": "cd services/payment && npm run dev",
+    "dev:notification": "cd services/notification && npm run dev",
+    "dev:reporting": "cd services/reporting && npm run dev",
+    "dev:gateway": "cd services/api-gateway && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && npm run install:shared && npm run install:services && npm run install:frontend",
+    "install:shared": "cd shared && npm install",
+    "install:services": "cd services/auth && npm install && cd ../user-management && npm install && cd ../menu-management && npm install && cd ../order-management && npm install && cd ../payment && npm install && cd ../notification && npm install && cd ../reporting && npm install && cd ../api-gateway && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "test": "npm run test:shared && npm run test:frontend",
+    "test:shared": "cd shared && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:e2e": "cd frontend && npx playwright test",
+    "migrate": "cd shared && npm run migrate",
+    "seed": "cd shared && npm run seed",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "lint": "npm run lint:services && npm run lint:frontend",
+    "lint:services": "cd services/auth && npm run lint && cd ../user-management && npm run lint && cd ../menu-management && npm run lint && cd ../order-management && npm run lint && cd ../payment && npm run lint && cd ../notification && npm run lint && cd ../reporting && npm run lint && cd ../api-gateway && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "clean": "npm run clean:node_modules && npm run clean:dist",
+    "clean:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
+    "clean:dist": "find . -name 'dist' -type d -prune -exec rm -rf '{}' +"
   },
-  "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "body-parser": "^1.19.0",
-    "cors": "^2.8.5",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^5.10.9",
-    "multer": "^1.4.2",
-    "stripe": "^8.0.0",
-    "xlsx": "^0.17.0"
-  },
+  "keywords": [
+    "catering",
+    "management",
+    "microservices",
+    "nodejs",
+    "react",
+    "postgresql",
+    "redis"
+  ],
+  "author": "Tadbir Khowan Team",
+  "license": "MIT",
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.0"
   },
-  "author": "Your Name",
-  "license": "MIT"
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/tadbir-khowan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/tadbir-khowan/issues"
+  },
+  "homepage": "https://github.com/your-username/tadbir-khowan#readme"
 }

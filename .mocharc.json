@@ -1,4 +1,0 @@
-{
-  "spec": "src/**/*.test.js",
-  "reporter": "spec"
-}
